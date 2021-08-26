@@ -1,0 +1,27 @@
+defaultEntryPoints = ["http", "https"]
+debug = false
+logLevel = "DEBUG"
+# Redirect HTTP to HTTPS and use certificate, see https://docs.traefik.io/configuration/entrypoints/
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+    
+
+# Docker Swarm Mode Provider, see https://docs.traefik.io/configuration/backends/docker/#docker-swarm-mode
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "<domain>"
+watch = true
+[acme]
+email = "<email>"
+caServer = "https://acme-v02.api.letsencrypt.org/directory"
+storage = "acme.json"
+entryPoint = "https"
+onHostRule = true
+[acme.httpChallenge]
+entryPoint = "http"

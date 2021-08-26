@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  frontproxy:
+    image: traefik:v1.7.30-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./acme.json:/acme.json
+      - ./traefik.toml:/etc/traefik/traefik.toml:ro
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+    labels:
+      - traefik.port=8080
+      - traefik.frontend.rule=Host:traefik.domain.local
+    networks:
+      - registry_network
+    restart: always
+  docker-registry:
+    image: registry:2
+    labels:
+      - "traefik.docker.network=registry_network"
+      - traefik.port=5000 # default port exposed by the registry
+      - traefik.frontend.rule=Host:r.kikos.tech
+      - traefik.frontend.auth.basic.users=kikos:$$apr1$$exoqlk4h$$eutYE/VHiZC6EUCZQoro2/
+    networks:
+      - registry_network
+    restart: always
+    volumes:
+      - ./data:/data
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+    
+networks:
+    registry_network:
+        driver: bridge
